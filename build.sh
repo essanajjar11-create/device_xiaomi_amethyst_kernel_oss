@@ -136,15 +136,15 @@ fi
 
 # 1. Configure defconfig
 echo "--> Generating defconfig: ${DEFCONFIG}..."
-make O="${OUT_DIR}" "${DEFCONFIG}"
+make O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 LLVM_IAS=1 "${DEFCONFIG}"
 
 if [ "${DO_MENUCONFIG}" = true ]; then
-    make O="${OUT_DIR}" menuconfig
+    make O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 LLVM_IAS=1 menuconfig
 fi
 
 # 2. Compile Kernel Image
 echo "--> Compiling Kernel Image..."
-make -j"${JOBS}" O="${OUT_DIR}" Image
+make -j"${JOBS}" O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 LLVM_IAS=1 Image
 
 if [ -f "${OUT_DIR}/arch/arm64/boot/Image" ]; then
     cp "${OUT_DIR}/arch/arm64/boot/Image" "${DIST_DIR}/Image"
@@ -157,14 +157,14 @@ fi
 # 3. Compile Modules (if requested)
 if [ "${DO_MODULES}" = true ]; then
     echo "--> Compiling Kernel Modules..."
-    make -j"${JOBS}" O="${OUT_DIR}" modules
+    make -j"${JOBS}" O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 LLVM_IAS=1 modules
 
     MODULES_STAGING="${DIST_DIR}/modules_staging"
     rm -rf "${MODULES_STAGING}"
     mkdir -p "${MODULES_STAGING}"
 
     echo "--> Installing modules to staging..."
-    make O="${OUT_DIR}" INSTALL_MOD_PATH="${MODULES_STAGING}" INSTALL_MOD_STRIP=1 modules_install
+    make O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH="${MODULES_STAGING}" INSTALL_MOD_STRIP=1 modules_install
 
     # Gather in-tree .ko files
     mkdir -p "${DIST_DIR}/modules"

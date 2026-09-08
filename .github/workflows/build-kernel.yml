@@ -32,6 +32,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             bc \
             bison \
+            binutils-aarch64-linux-gnu \
             ca-certificates \
             curl \
             flex \
@@ -80,18 +81,18 @@ jobs:
           mkdir -p out dist/modules
 
           echo "--> Generating configuration..."
-          make O=out amethyst_defconfig
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 amethyst_defconfig
 
           echo "--> Building kernel..."
-          make -j$(nproc --all) O=out Image
+          make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 Image
 
           echo "--> Building in-tree modules..."
-          make -j$(nproc --all) O=out modules
+          make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 modules
 
           cp out/arch/arm64/boot/Image dist/Image
 
           echo "--> Installing modules..."
-          make O=out INSTALL_MOD_PATH=dist/modules_staging INSTALL_MOD_STRIP=1 modules_install
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH=dist/modules_staging INSTALL_MOD_STRIP=1 modules_install
           find dist/modules_staging -name "*.ko" -exec cp {} dist/modules/ \;
           tar -czf dist/amethyst-modules.tar.gz -C dist/modules .
 
