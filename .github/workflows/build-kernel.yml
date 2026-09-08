@@ -34,11 +34,14 @@ jobs:
             bison \
             binutils-aarch64-linux-gnu \
             ca-certificates \
+            cpio \
             curl \
+            dwarves \
             flex \
             gcc \
             g++ \
             git \
+            kmod \
             libelf-dev \
             libssl-dev \
             make \
