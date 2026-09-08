@@ -1,0 +1,124 @@
+name: Build Amethyst Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_anykernel:
+        description: 'Package into AnyKernel3 flashable zip'
+        required: true
+        type: boolean
+        default: true
+  push:
+    branches:
+      - sixteen
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+
+jobs:
+  build:
+    name: Build GKI Kernel for Amethyst
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            bc \
+            bison \
+            ca-certificates \
+            curl \
+            flex \
+            gcc \
+            g++ \
+            git \
+            libelf-dev \
+            libssl-dev \
+            make \
+            python3 \
+            tar \
+            xz-utils \
+            zip
+
+      - name: Setup AOSP Clang Toolchain
+        run: |
+          mkdir -p toolchain/clang
+          CLANG_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r487747c.tar.gz"
+          echo "Downloading AOSP Clang r487747c..."
+          curl -fSL "${CLANG_URL}" -o /tmp/clang.tar.gz
+          tar -xzf /tmp/clang.tar.gz -C toolchain/clang
+          rm -f /tmp/clang.tar.gz
+          echo "${GITHUB_WORKSPACE}/toolchain/clang/bin" >> $GITHUB_PATH
+
+      - name: Verify Clang Version
+        run: |
+          clang --version
+
+      - name: Setup AnyKernel3
+        if: ${{ github.event.inputs.package_anykernel != 'false' }}
+        run: |
+          git clone https://github.com/osm0sis/AnyKernel3.git --depth=1 anykernel
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel/anykernel.sh
+          sed -i 's/block=auto/block=boot/g' anykernel/anykernel.sh
+          sed -i 's/is_slot_device=auto/is_slot_device=1/g' anykernel/anykernel.sh
+
+      - name: Build Kernel Image & Modules
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+          export LLVM=1
+          export LLVM_IAS=1
+
+          mkdir -p out dist/modules
+
+          echo "--> Generating configuration..."
+          make O=out amethyst_defconfig
+
+          echo "--> Building kernel..."
+          make -j$(nproc --all) O=out Image
+
+          echo "--> Building in-tree modules..."
+          make -j$(nproc --all) O=out modules
+
+          cp out/arch/arm64/boot/Image dist/Image
+
+          echo "--> Installing modules..."
+          make O=out INSTALL_MOD_PATH=dist/modules_staging INSTALL_MOD_STRIP=1 modules_install
+          find dist/modules_staging -name "*.ko" -exec cp {} dist/modules/ \;
+          tar -czf dist/amethyst-modules.tar.gz -C dist/modules .
+
+      - name: Package AnyKernel3 Zip
+        if: ${{ github.event.inputs.package_anykernel != 'false' }}
+        run: |
+          cp dist/Image anykernel/Image
+          cd anykernel
+          ZIP_NAME="Amethyst-GKI-Kernel-$(date +%Y%m%d_%H%M%S).zip"
+          zip -r9 "../dist/${ZIP_NAME}" * -x .git README.md *placeholder
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+
+      - name: Upload Flashable AnyKernel3 Zip
+        if: ${{ github.event.inputs.package_anykernel != 'false' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: dist/*.zip
+
+      - name: Upload Raw Kernel Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-amethyst
+          path: dist/Image
+
+      - name: Upload Compiled In-Tree Modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-modules
+          path: dist/amethyst-modules.tar.gz
