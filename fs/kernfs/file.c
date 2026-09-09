@@ -15,6 +15,7 @@
 #include <linux/sched/mm.h>
 #include <linux/fsnotify.h>
 #include <linux/uio.h>
+#include <linux/sizes.h>
 
 #include "kernfs-internal.h"
 
@@ -291,6 +292,7 @@ static ssize_t kernfs_fop_write_iter(struct kiocb *iocb, struct iov_iter *iter)
 	struct kernfs_open_file *of = kernfs_of(iocb->ki_filp);
 	ssize_t len = iov_iter_count(iter);
 	const struct kernfs_ops *ops;
+	char buf_onstack[SZ_64] __aligned(sizeof(long));
 	char *buf;
 
 	if (of->atomic_write_len) {
@@ -300,13 +302,17 @@ static ssize_t kernfs_fop_write_iter(struct kiocb *iocb, struct iov_iter *iter)
 		len = min_t(size_t, len, PAGE_SIZE);
 	}
 
-	buf = of->prealloc_buf;
-	if (buf)
-		mutex_lock(&of->prealloc_mutex);
-	else
-		buf = kmalloc(len + 1, GFP_KERNEL);
-	if (!buf)
-		return -ENOMEM;
+	if (len < sizeof(buf_onstack)) {
+		buf = buf_onstack;
+	} else {
+		buf = of->prealloc_buf;
+		if (buf)
+			mutex_lock(&of->prealloc_mutex);
+		else
+			buf = kmalloc(len + 1, GFP_KERNEL);
+		if (!buf)
+			return -ENOMEM;
+	}
 
 	if (copy_from_iter(buf, len, iter) != len) {
 		len = -EFAULT;
@@ -340,7 +346,7 @@ static ssize_t kernfs_fop_write_iter(struct kiocb *iocb, struct iov_iter *iter)
 out_free:
 	if (buf == of->prealloc_buf)
 		mutex_unlock(&of->prealloc_mutex);
-	else
+	else if (buf != buf_onstack)
 		kfree(buf);
 	return len;
 }
