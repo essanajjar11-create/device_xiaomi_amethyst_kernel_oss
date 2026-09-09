@@ -67,6 +67,7 @@ obj-$(CONFIG_MI_WIFI_GPIO)	+= wifi_gpio/
 obj-$(CONFIG_QSEECOM_PROXY) 	+= qseecom_proxy.o
 obj-$(CONFIG_MI_HARDWARE_ID)	+= hwid/
 obj-$(CONFIG_KPROFILES)		+= kprofiles/
+obj-$(CONFIG_MI_DISP_FEATURES)	+= disp_features/
 # MIUI ADD: Performance_DisplayFluencyEnhance
 obj-$(CONFIG_MI_SW_SYNC)	+= mi_sw_sync/
 # END Performance_DisplayFluencyEnhance

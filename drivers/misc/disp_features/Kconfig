@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config MI_DISP_FEATURES
+	tristate "Xiaomi Display Features (HBM and DC Dimming)"
+	default y
+	help
+	  Exposes sysfs control nodes under /sys/kernel/display_features/
+	  for High Brightness Mode (HBM) and DC Dimming toggle.
