@@ -801,7 +801,8 @@ rwsem_spin_on_owner(struct rw_semaphore *sem)
 			break;
 		}
 
-		cpu_relax();
+		if (cnt++ > 1000)
+			cpu_relax();
 	}
 
 	return state;
