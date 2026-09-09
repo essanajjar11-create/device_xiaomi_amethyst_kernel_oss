@@ -18,6 +18,7 @@
 #include <linux/irq.h>
 #include <linux/irqdesc.h>
 #include <linux/wakeup_reason.h>
+#include <linux/kobject.h>
 #include <trace/events/power.h>
 
 #include "power.h"
@@ -555,6 +556,70 @@ static bool wakeup_source_not_registered(struct wakeup_source *ws)
  * function executed when the timer expires, whichever comes first.
  */
 
+#define MAX_BLOCKED_WAKELOCKS_LEN 1024
+static char blocked_wakelocks[MAX_BLOCKED_WAKELOCKS_LEN];
+static DEFINE_MUTEX(blocked_wakelocks_lock);
+
+static bool is_wakelock_blocked(const char *name)
+{
+	char *p, *tok;
+	char buf[MAX_BLOCKED_WAKELOCKS_LEN];
+
+	if (!name || !blocked_wakelocks[0])
+		return false;
+
+	mutex_lock(&blocked_wakelocks_lock);
+	strscpy(buf, blocked_wakelocks, sizeof(buf));
+	mutex_unlock(&blocked_wakelocks_lock);
+
+	p = buf;
+	while ((tok = strsep(&p, " \n;,")) != NULL) {
+		if (*tok && !strcmp(name, tok))
+			return true;
+	}
+	return false;
+}
+
+static ssize_t blocked_wakelocks_show(struct kobject *kobj,
+				      struct kobj_attribute *attr, char *buf)
+{
+	ssize_t ret;
+
+	mutex_lock(&blocked_wakelocks_lock);
+	ret = scnprintf(buf, PAGE_SIZE, "%s\n", blocked_wakelocks);
+	mutex_unlock(&blocked_wakelocks_lock);
+
+	return ret;
+}
+
+static ssize_t blocked_wakelocks_store(struct kobject *kobj,
+				       struct kobj_attribute *attr,
+				       const char *buf, size_t count)
+{
+	if (count >= MAX_BLOCKED_WAKELOCKS_LEN)
+		return -EINVAL;
+
+	mutex_lock(&blocked_wakelocks_lock);
+	strscpy(blocked_wakelocks, buf, sizeof(blocked_wakelocks));
+	if (count > 0 && blocked_wakelocks[count - 1] == '\n')
+		blocked_wakelocks[count - 1] = '\0';
+	mutex_unlock(&blocked_wakelocks_lock);
+
+	return count;
+}
+
+static struct kobj_attribute blocked_wakelocks_attr =
+	__ATTR(blocked_wakelocks, 0644, blocked_wakelocks_show, blocked_wakelocks_store);
+
+static struct attribute *wakelock_blocker_attrs[] = {
+	&blocked_wakelocks_attr.attr,
+	NULL,
+};
+
+static const struct attribute_group wakelock_blocker_attr_group = {
+	.attrs = wakelock_blocker_attrs,
+};
+
 /**
  * wakeup_source_activate - Mark given wakeup source as active.
  * @ws: Wakeup source to handle.
@@ -569,6 +634,9 @@ static void wakeup_source_activate(struct wakeup_source *ws)
 
 	if (WARN_ONCE(wakeup_source_not_registered(ws),
 			"unregistered wakeup source\n"))
+		return;
+
+	if (is_wakelock_blocked(ws->name))
 		return;
 
 	ws->active = true;
@@ -1238,3 +1306,15 @@ static int __init wakeup_sources_debugfs_init(void)
 }
 
 postcore_initcall(wakeup_sources_debugfs_init);
+
+static int __init wakelock_blocker_sysfs_init(void)
+{
+	struct kobject *kobj;
+
+	kobj = kobject_create_and_add("wakelock_blocker", kernel_kobj);
+	if (!kobj)
+		return -ENOMEM;
+
+	return sysfs_create_group(kobj, &wakelock_blocker_attr_group);
+}
+late_initcall(wakelock_blocker_sysfs_init);
