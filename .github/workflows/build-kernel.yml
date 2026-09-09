@@ -75,43 +75,8 @@ jobs:
           git clone https://github.com/osm0sis/AnyKernel3.git -b arm64-tools --depth=1 anykernel-arm64
           cp -f anykernel-arm64/* anykernel/tools/
           rm -rf anykernel-arm64
-          cat << 'EOF' > anykernel/anykernel.sh
-### AnyKernel3 Ramdisk Mod Script
-## osm0sis @ xda-developers
-
-### AnyKernel setup
-# global properties
-properties() { '
-kernel.string=Sina Kernel for Xiaomi Redmi Note 14 Pro+ (Amethyst)
-do.devicecheck=0
-do.modules=0
-do.systemless=1
-do.cleanup=1
-do.cleanuponabort=0
-'; } # end properties
-
-### AnyKernel install
-# boot shell variables
-BLOCK=boot;
-IS_SLOT_DEVICE=auto;
-RAMDISK_COMPRESSION=auto;
-PATCH_VBMETA_FLAG=auto;
-
-# import functions/variables and setup patching - see for reference (DO NOT REMOVE)
-. tools/ak3-core.sh;
-
-# boot install
-split_boot;
-flash_boot;
-## end boot install
-EOF
-          cat << 'EOF' > anykernel/banner
-==========================================
-   Sina Kernel for Redmi Note 14 Pro+
-              (Amethyst)
-   Pure 64-bit ARMv9 (Snapdragon 7s Gen 3)
-==========================================
-EOF
+          cp -f .github/anykernel.sh anykernel/anykernel.sh
+          cp -f .github/banner anykernel/banner
 
       - name: Build Kernel Image & Modules
         run: |

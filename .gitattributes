@@ -4,4 +4,5 @@
 *.dts  diff=dts
 *.bzl text eol=lf
 build.targets text eol=lf
+*.sh text eol=lf
 .gitattributes text eol=lf
