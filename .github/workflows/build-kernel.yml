@@ -88,7 +88,6 @@ jobs:
           export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
           export LLVM=1
           export LLVM_IAS=1
-          export KCFLAGS="-Wno-default-const-init-var-unsafe -Wno-default-const-init-field-unsafe -Wno-uninitialized-const-pointer"
 
           mkdir -p out dist/modules
 

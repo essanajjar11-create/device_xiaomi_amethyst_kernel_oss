@@ -1069,11 +1069,6 @@ KBUILD_CFLAGS += $(call cc-disable-warning, stringop-overflow)
 # Another good warning that we'll want to enable eventually
 KBUILD_CFLAGS += $(call cc-disable-warning, restrict)
 
-# Disable modern Clang diagnostics (LLVM 19+)
-KBUILD_CFLAGS += $(call cc-disable-warning, default-const-init-var-unsafe)
-KBUILD_CFLAGS += $(call cc-disable-warning, default-const-init-field-unsafe)
-KBUILD_CFLAGS += $(call cc-disable-warning, uninitialized-const-pointer)
-
 # Enabled with W=2, disabled by default as noisy
 ifdef CONFIG_CC_IS_GCC
 KBUILD_CFLAGS += -Wno-maybe-uninitialized
