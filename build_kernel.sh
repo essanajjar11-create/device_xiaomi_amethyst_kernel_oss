@@ -96,7 +96,7 @@ export CROSS_COMPILE=aarch64-linux-gnu-
 export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
 export LLVM=1
 export LLVM_IAS=1
-export LOCALVERSION=""
+export LOCALVERSION="-android14-11-gca0ef6d17716-ab13624819"
 
 THREADS=$(nproc --all)
 echo -e "${BLUE}Using ${THREADS} CPU threads for compilation...${NC}"
@@ -125,7 +125,7 @@ echo -e "\n${YELLOW}[6/6] Packaging flashable zip...${NC}"
 cp -f dist/Image anykernel/Image
 cd anykernel
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-ZIP_NAME="Sina-Amethyst-Kernel-6.1.68-${TIMESTAMP}.zip"
+ZIP_NAME="Sina-Amethyst-Kernel-6.1.118-${TIMESTAMP}.zip"
 zip -r9 "../dist/${ZIP_NAME}" * -x .git README.md *placeholder
 cd "${KERNEL_DIR}"
 

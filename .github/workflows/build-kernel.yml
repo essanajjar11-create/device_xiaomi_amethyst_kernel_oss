@@ -86,7 +86,7 @@ jobs:
           export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
           export LLVM=1
           export LLVM_IAS=1
-          export LOCALVERSION=""
+          export LOCALVERSION="-android14-11-gca0ef6d17716-ab13624819"
 
           mkdir -p out dist/modules
 
@@ -112,7 +112,7 @@ jobs:
         run: |
           cp dist/Image anykernel/Image
           cd anykernel
-          ZIP_NAME="Sina-Amethyst-Kernel-6.1.68-$(date +%Y%m%d_%H%M%S).zip"
+          ZIP_NAME="Sina-Amethyst-Kernel-6.1.118-$(date +%Y%m%d_%H%M%S).zip"
           zip -r9 "../dist/${ZIP_NAME}" * -x .git README.md *placeholder
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
 

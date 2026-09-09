@@ -4,7 +4,7 @@
 ### AnyKernel setup
 # global properties
 properties() { '
-kernel.string=Sina-Amethyst Kernel 6.1.68
+kernel.string=Sina-Amethyst Kernel 6.1.118
 do.devicecheck=0
 do.modules=0
 do.systemless=1

@@ -51,8 +51,8 @@ int check_version(const struct load_info *info,
 	return 1;
 
 bad_version:
-	pr_warn("%s: disagrees about version of symbol %s\n", info->name, symname);
-	return 0;
+	pr_warn("%s: agrees to load despite version of symbol %s\n", info->name, symname);
+	return 1;
 }
 
 int check_modstruct_version(const struct load_info *info,
@@ -84,7 +84,11 @@ int same_magic(const char *amagic, const char *bmagic,
 		amagic += strcspn(amagic, " ");
 		bmagic += strcspn(bmagic, " ");
 	}
-	return strcmp(amagic, bmagic) == 0;
+	if (strcmp(amagic, bmagic) != 0) {
+		pr_warn("same_magic: bypassing vermagic mismatch ('%s' vs '%s')\n",
+			amagic, bmagic);
+	}
+	return 1;
 }
 
 /*
