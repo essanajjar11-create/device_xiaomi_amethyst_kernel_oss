@@ -60,7 +60,13 @@ jobs:
           mkdir -p toolchain/clang
           CLANG_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r487747c.tar.gz"
           echo "Downloading AOSP Clang r487747c..."
-          curl -fSL "${CLANG_URL}" -o /tmp/clang.tar.gz
+          for i in 1 2 3 4 5; do
+            if curl -fSL --connect-timeout 30 --retry 5 --retry-delay 5 "${CLANG_URL}" -o /tmp/clang.tar.gz; then
+              break
+            fi
+            echo "Download failed, retrying in 5s (attempt $i)..."
+            sleep 5
+          done
           tar -xzf /tmp/clang.tar.gz -C toolchain/clang
           rm -f /tmp/clang.tar.gz
           echo "${GITHUB_WORKSPACE}/toolchain/clang/bin" >> $GITHUB_PATH
