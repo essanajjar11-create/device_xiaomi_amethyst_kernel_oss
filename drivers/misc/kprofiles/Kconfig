@@ -71,6 +71,15 @@ config AUTO_KPROFILES_FB
 	  battery mode when device screen turns off and will switch back to
 	  previously active mode when the device wakes up.
 
+config AUTO_KPROFILES_PM
+	bool "Auto Kprofiles using PM notifier (Sleep / Wake)"
+	select AUTO_KPROFILES
+	help
+	  Select this to enable Kprofile's automatic mode changer via Linux PM notifier.
+	  When this option is enabled, Kprofiles will automatically switch to
+	  battery mode when the device enters sleep/suspend and will switch back to
+	  previously active mode when the device wakes up.
+
 config AUTO_KPROFILES_NONE
 	bool "None"
 	help

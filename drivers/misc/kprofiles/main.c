@@ -33,6 +33,8 @@
 #include <drm/drm_notifier_mi.h>
 #elif defined(CONFIG_AUTO_KPROFILES_FB)
 #include <linux/fb.h>
+#elif defined(CONFIG_AUTO_KPROFILES_PM)
+#include <linux/suspend.h>
 #endif
 #include "version.h"
 #include <linux/notifier.h>
@@ -297,9 +299,38 @@ static inline int kp_display_notifier_callback(struct notifier_block *self,
 	return NOTIFY_OK;
 }
 
+#ifdef CONFIG_AUTO_KPROFILES_PM
+static inline int kp_pm_notifier_callback(struct notifier_block *self,
+					  unsigned long event, void *data)
+{
+	switch (event) {
+	case PM_SUSPEND_PREPARE:
+		if (!screen_on)
+			break;
+		screen_on = false;
+		kp_trigger_mode_change_event();
+		break;
+	case PM_POST_SUSPEND:
+		if (screen_on)
+			break;
+		screen_on = true;
+		kp_trigger_mode_change_event();
+		break;
+	default:
+		break;
+	}
+
+	return NOTIFY_OK;
+}
+
+static struct notifier_block kp_display_notifier_block = {
+	.notifier_call = kp_pm_notifier_callback,
+};
+#else
 static struct notifier_block kp_display_notifier_block = {
 	.notifier_call = kp_display_notifier_callback,
 };
+#endif
 
 static inline int kp_register_display_notifier(void)
 {
@@ -311,6 +342,8 @@ static inline int kp_register_display_notifier(void)
 	ret = mi_drm_register_client(&kp_display_notifier_block);
 #elif defined(CONFIG_AUTO_KPROFILES_FB)
 	ret = fb_register_client(&kp_display_notifier_block);
+#elif defined(CONFIG_AUTO_KPROFILES_PM)
+	ret = register_pm_notifier(&kp_display_notifier_block);
 #endif
 
 	return ret;
@@ -324,6 +357,8 @@ static inline void kp_unregister_display_notifier(void)
 	mi_drm_unregister_client(&kp_display_notifier_block);
 #elif defined(CONFIG_AUTO_KPROFILES_FB)
 	fb_unregister_client(&kp_display_notifier_block);
+#elif defined(CONFIG_AUTO_KPROFILES_PM)
+	unregister_pm_notifier(&kp_display_notifier_block);
 #endif
 }
 
