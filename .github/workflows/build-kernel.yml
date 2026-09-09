@@ -15,6 +15,10 @@ on:
       - '**.md'
       - '.gitignore'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build GKI Kernel for Amethyst
