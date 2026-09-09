@@ -100,9 +100,8 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 			 enum pm_qos_req_action action, int value)
 {
 	int prev_value, curr_value, new_value;
-	unsigned long flags;
 
-	spin_lock_irqsave(&pm_qos_lock, flags);
+	spin_lock(&pm_qos_lock);
 
 	prev_value = pm_qos_get_value(c);
 	if (value == PM_QOS_DEFAULT_VALUE)
@@ -133,7 +132,7 @@ int pm_qos_update_target(struct pm_qos_constraints *c, struct plist_node *node,
 	curr_value = pm_qos_get_value(c);
 	pm_qos_set_value(c, curr_value);
 
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+	spin_unlock(&pm_qos_lock);
 
 	trace_pm_qos_update_target(action, prev_value, curr_value);
 
@@ -176,10 +175,9 @@ bool pm_qos_update_flags(struct pm_qos_flags *pqf,
 			 struct pm_qos_flags_request *req,
 			 enum pm_qos_req_action action, s32 val)
 {
-	unsigned long irqflags;
 	s32 prev_value, curr_value;
 
-	spin_lock_irqsave(&pm_qos_lock, irqflags);
+	spin_lock(&pm_qos_lock);
 
 	prev_value = list_empty(&pqf->list) ? 0 : pqf->effective_flags;
 
@@ -203,7 +201,7 @@ bool pm_qos_update_flags(struct pm_qos_flags *pqf,
 
 	curr_value = list_empty(&pqf->list) ? 0 : pqf->effective_flags;
 
-	spin_unlock_irqrestore(&pm_qos_lock, irqflags);
+	spin_unlock(&pm_qos_lock);
 
 	trace_pm_qos_update_flags(action, prev_value, curr_value);
 
@@ -363,15 +361,14 @@ static ssize_t cpu_latency_qos_read(struct file *filp, char __user *buf,
 				    size_t count, loff_t *f_pos)
 {
 	struct pm_qos_request *req = filp->private_data;
-	unsigned long flags;
 	s32 value;
 
 	if (!req || !cpu_latency_qos_request_active(req))
 		return -EINVAL;
 
-	spin_lock_irqsave(&pm_qos_lock, flags);
+	spin_lock(&pm_qos_lock);
 	value = pm_qos_get_value(&cpu_latency_constraints);
-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+	spin_unlock(&pm_qos_lock);
 
 	return simple_read_from_buffer(buf, count, f_pos, &value, sizeof(s32));
 }
