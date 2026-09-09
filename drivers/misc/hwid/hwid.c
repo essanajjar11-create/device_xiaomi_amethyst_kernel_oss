@@ -16,18 +16,49 @@ static int hwid_value = 0;
 static int hwid_project = 0;
 static int hwid_build_adc = 0;
 static int hwid_project_adc = 0;
+static int hw_country = CountryGlobal;
 
 int get_hwid_value(void)
 {
 	return hwid_value;
 }
-EXPORT_SYMBOL_GPL(get_hwid_value);
+EXPORT_SYMBOL(get_hwid_value);
 
 int get_hwid_project(void)
 {
 	return hwid_project;
 }
-EXPORT_SYMBOL_GPL(get_hwid_project);
+EXPORT_SYMBOL(get_hwid_project);
+
+int get_hw_version_platform(void)
+{
+	return hwid_project;
+}
+EXPORT_SYMBOL(get_hw_version_platform);
+
+int get_hw_version_build(void)
+{
+	return hwid_build_adc;
+}
+EXPORT_SYMBOL(get_hw_version_build);
+
+int get_hw_version_minor(void)
+{
+	return hwid_value & 0xF;
+}
+EXPORT_SYMBOL(get_hw_version_minor);
+
+int get_hw_version_major(void)
+{
+	return (hwid_value >> 4) & 0xF;
+}
+EXPORT_SYMBOL(get_hw_version_major);
+
+int get_hw_country_version(void)
+{
+	return hw_country;
+}
+EXPORT_SYMBOL(get_hw_country_version);
 
 static ssize_t hwid_value_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -53,11 +84,18 @@ static ssize_t hwid_project_adc_show(struct device *dev, struct device_attribute
 }
 static DEVICE_ATTR_RO(hwid_project_adc);
 
+static ssize_t hw_country_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%d\n", hw_country);
+}
+static DEVICE_ATTR_RO(hw_country);
+
 static struct attribute *hwid_attrs[] = {
 	&dev_attr_hwid_value.attr,
 	&dev_attr_hwid_project.attr,
 	&dev_attr_hwid_build_adc.attr,
 	&dev_attr_hwid_project_adc.attr,
+	&dev_attr_hw_country.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(hwid);
@@ -71,6 +109,7 @@ static int hwid_probe(struct platform_device *pdev)
 		of_property_read_u32(np, "hwid-project", &hwid_project);
 		of_property_read_u32(np, "hwid-build-adc", &hwid_build_adc);
 		of_property_read_u32(np, "hwid-project-adc", &hwid_project_adc);
+		of_property_read_u32(np, "hw-country", &hw_country);
 	}
 
 	dev_info(&pdev->dev, "Xiaomi HWID initialized (value=%d, project=%d)\n",
