@@ -75,6 +75,7 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel/anykernel.sh
           sed -i 's/block=auto/block=boot/g' anykernel/anykernel.sh
           sed -i 's/is_slot_device=auto/is_slot_device=1/g' anykernel/anykernel.sh
+          sed -i 's/kernel.string=.*/kernel.string=Sina Kernel for Xiaomi Redmi Note 14 Pro+ (Amethyst)/g' anykernel/anykernel.sh
 
       - name: Build Kernel Image & Modules
         run: |
@@ -84,6 +85,7 @@ jobs:
           export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
           export LLVM=1
           export LLVM_IAS=1
+          export LOCALVERSION=""
 
           mkdir -p out dist/modules
 
@@ -102,14 +104,14 @@ jobs:
           mkdir -p "${GITHUB_WORKSPACE}/dist/modules_staging"
           make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH="${GITHUB_WORKSPACE}/dist/modules_staging" INSTALL_MOD_STRIP=1 modules_install
           find "${GITHUB_WORKSPACE}/dist/modules_staging" -name "*.ko" -exec cp -f {} "${GITHUB_WORKSPACE}/dist/modules/" \;
-          tar -czf "${GITHUB_WORKSPACE}/dist/amethyst-modules.tar.gz" -C "${GITHUB_WORKSPACE}/dist/modules" .
+          tar -czf "${GITHUB_WORKSPACE}/dist/Sina-Amethyst-modules.tar.gz" -C "${GITHUB_WORKSPACE}/dist/modules" .
 
       - name: Package AnyKernel3 Zip
         if: ${{ github.event.inputs.package_anykernel != 'false' }}
         run: |
           cp dist/Image anykernel/Image
           cd anykernel
-          ZIP_NAME="Amethyst-GKI-Kernel-$(date +%Y%m%d_%H%M%S).zip"
+          ZIP_NAME="Sina-Amethyst-Kernel-6.1.68-$(date +%Y%m%d_%H%M%S).zip"
           zip -r9 "../dist/${ZIP_NAME}" * -x .git README.md *placeholder
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
 
@@ -123,11 +125,11 @@ jobs:
       - name: Upload Raw Kernel Image
         uses: actions/upload-artifact@v4
         with:
-          name: Image-amethyst
+          name: Image-Sina-Amethyst
           path: dist/Image
 
       - name: Upload Compiled In-Tree Modules
         uses: actions/upload-artifact@v4
         with:
-          name: amethyst-modules
-          path: dist/amethyst-modules.tar.gz
+          name: Sina-Amethyst-modules
+          path: dist/Sina-Amethyst-modules.tar.gz
