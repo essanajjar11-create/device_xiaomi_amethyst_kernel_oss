@@ -41,7 +41,6 @@ jobs:
             cpio \
             curl \
             dwarves \
-            file \
             flex \
             gcc \
             g++ \
@@ -52,25 +51,22 @@ jobs:
             make \
             python3 \
             tar \
-            wget \
             xz-utils \
-            zip \
-            zstd
+            zip
 
-      - name: Setup Neutron Clang Toolchain
+      - name: Setup AOSP Clang Toolchain
         run: |
-          mkdir -p "${HOME}/toolchain/clang"
-          cd "${HOME}/toolchain/clang"
-          curl -fSL "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman" -o antman
-          chmod +x antman
-          ./antman -S=latest
-          ./antman --patch=glibc
-          echo "${HOME}/toolchain/clang/bin" >> $GITHUB_PATH
+          mkdir -p toolchain/clang
+          CLANG_URL="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android14-release/clang-r487747c.tar.gz"
+          echo "Downloading AOSP Clang r487747c..."
+          curl -fSL "${CLANG_URL}" -o /tmp/clang.tar.gz
+          tar -xzf /tmp/clang.tar.gz -C toolchain/clang
+          rm -f /tmp/clang.tar.gz
+          echo "${GITHUB_WORKSPACE}/toolchain/clang/bin" >> $GITHUB_PATH
 
       - name: Verify Clang Version
         run: |
           clang --version
-          ld.lld --version
 
       - name: Setup AnyKernel3
         if: ${{ github.event.inputs.package_anykernel != 'false' }}
