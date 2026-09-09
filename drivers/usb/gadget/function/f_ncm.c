@@ -1680,24 +1680,18 @@ static void ncm_unbind(struct usb_configuration *c, struct usb_function *f)
 	hrtimer_cancel(&ncm->task_timer);
 
 	kfree(f->os_desc_table);
-	f->os_desc_table = NULL;
 	f->os_desc_n = 0;
 
 	ncm_string_defs[0].id = 0;
 	usb_free_all_descriptors(f);
 
 	if (atomic_read(&ncm->notify_count)) {
-		if (ncm->notify_req)
-			usb_ep_dequeue(ncm->notify, ncm->notify_req);
+		usb_ep_dequeue(ncm->notify, ncm->notify_req);
 		atomic_set(&ncm->notify_count, 0);
 	}
 
-	if (ncm->notify_req) {
-		kfree(ncm->notify_req->buf);
-		ncm->notify_req->buf = NULL;
-		usb_ep_free_request(ncm->notify, ncm->notify_req);
-		ncm->notify_req = NULL;
-	}
+	kfree(ncm->notify_req->buf);
+	usb_ep_free_request(ncm->notify, ncm->notify_req);
 }
 
 static struct usb_function *ncm_alloc(struct usb_function_instance *fi)
