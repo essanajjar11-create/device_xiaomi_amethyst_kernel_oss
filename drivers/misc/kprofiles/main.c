@@ -267,6 +267,7 @@ int kp_notifier_unregister_client(struct notifier_block *nb)
 EXPORT_SYMBOL(kp_notifier_unregister_client);
 
 #ifdef CONFIG_AUTO_KPROFILES
+#ifndef CONFIG_AUTO_KPROFILES_PM
 static inline int kp_display_notifier_callback(struct notifier_block *self,
 					       unsigned long event, void *data)
 {
@@ -298,6 +299,7 @@ static inline int kp_display_notifier_callback(struct notifier_block *self,
 
 	return NOTIFY_OK;
 }
+#endif
 
 #ifdef CONFIG_AUTO_KPROFILES_PM
 static inline int kp_pm_notifier_callback(struct notifier_block *self,
