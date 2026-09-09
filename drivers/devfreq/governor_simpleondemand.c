@@ -12,9 +12,9 @@
 #include <linux/math64.h>
 #include "governor.h"
 
-/* Default constants for DevFreq-Simple-Ondemand (DFSO) */
-#define DFSO_UPTHRESHOLD	(90)
-#define DFSO_DOWNDIFFERENCTIAL	(5)
+/* Default constants for DevFreq-Simple-Ondemand (DFSO) tuned for gaming */
+#define DFSO_UPTHRESHOLD	(60)
+#define DFSO_DOWNDIFFERENCTIAL	(10)
 static int devfreq_simple_ondemand_func(struct devfreq *df,
 					unsigned long *freq)
 {
