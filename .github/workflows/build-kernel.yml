@@ -95,9 +95,10 @@ jobs:
           cp out/arch/arm64/boot/Image dist/Image
 
           echo "--> Installing modules..."
-          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH=dist/modules_staging INSTALL_MOD_STRIP=1 modules_install
-          find dist/modules_staging -name "*.ko" -exec cp {} dist/modules/ \;
-          tar -czf dist/amethyst-modules.tar.gz -C dist/modules .
+          mkdir -p "${GITHUB_WORKSPACE}/dist/modules_staging"
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH="${GITHUB_WORKSPACE}/dist/modules_staging" INSTALL_MOD_STRIP=1 modules_install
+          find "${GITHUB_WORKSPACE}/dist/modules_staging" -name "*.ko" -exec cp -f {} "${GITHUB_WORKSPACE}/dist/modules/" \;
+          tar -czf "${GITHUB_WORKSPACE}/dist/amethyst-modules.tar.gz" -C "${GITHUB_WORKSPACE}/dist/modules" .
 
       - name: Package AnyKernel3 Zip
         if: ${{ github.event.inputs.package_anykernel != 'false' }}
