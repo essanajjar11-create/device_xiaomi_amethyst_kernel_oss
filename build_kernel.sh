@@ -79,8 +79,11 @@ clang --version | head -n 1
 # 4. Setup AnyKernel3 packaging template
 echo -e "\n${YELLOW}[3/6] Setting up AnyKernel3 packaging template...${NC}"
 if [ ! -d "anykernel/.git" ]; then
-    rm -rf anykernel
-    git clone https://github.com/WildKernels/AnyKernel3.git -b gki-2.0 --depth=1 anykernel
+    rm -rf anykernel anykernel-arm64
+    git clone https://github.com/osm0sis/AnyKernel3.git --depth=1 anykernel
+    git clone https://github.com/osm0sis/AnyKernel3.git -b arm64-tools --depth=1 anykernel-arm64
+    cp -f anykernel-arm64/* anykernel/tools/
+    rm -rf anykernel-arm64
 fi
 cp -f .github/anykernel.sh anykernel/anykernel.sh
 cp -f .github/banner anykernel/banner

@@ -71,7 +71,10 @@ jobs:
       - name: Setup AnyKernel3
         if: ${{ github.event.inputs.package_anykernel != 'false' }}
         run: |
-          git clone https://github.com/WildKernels/AnyKernel3.git -b gki-2.0 --depth=1 anykernel
+          git clone https://github.com/osm0sis/AnyKernel3.git --depth=1 anykernel
+          git clone https://github.com/osm0sis/AnyKernel3.git -b arm64-tools --depth=1 anykernel-arm64
+          cp -f anykernel-arm64/* anykernel/tools/
+          rm -rf anykernel-arm64
           cp -f .github/anykernel.sh anykernel/anykernel.sh
           cp -f .github/banner anykernel/banner
 
